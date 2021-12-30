@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
-include(DefaultBuildType)
-
 # ==== Project Name ====
 project(ouster_ros)
 
@@ -47,7 +44,10 @@ catkin_package(
     sensor_msgs
     geometry_msgs
   DEPENDS
-    EIGEN3)
+    EIGEN3
+)
+
+add_compile_options(-Wno-deprecated-declarations)
 
 # ==== Libraries ====
 # Build static libraries and bundle them into ouster_ros using the `--whole-archive` flag. This is
@@ -56,7 +56,6 @@ catkin_package(
 set(_SAVE_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(../ouster_client ouster_client EXCLUDE_FROM_ALL)
-target_compile_options(ouster_client PRIVATE -Wno-deprecated-declarations)
 set(BUILD_SHARED_LIBS ${_SAVE_BUILD_SHARED_LIBS})
 
 # catkin adds all include dirs to a single variable, don't try to use targets
@@ -80,18 +79,19 @@ add_executable(os_cloud_node src/os_cloud_node.cpp)
 target_link_libraries(os_cloud_node ouster_ros ${catkin_LIBRARIES})
 add_dependencies(os_cloud_node ${PROJECT_NAME}_gencpp)
 
-add_executable(img_node src/img_node.cpp)
-target_link_libraries(img_node ouster_ros ${catkin_LIBRARIES})
-add_dependencies(img_node ${PROJECT_NAME}_gencpp)
-
 # ==== Install ====
 install(
-  TARGETS ouster_ros os_node os_cloud_node img_node
+  TARGETS ouster_ros os_node os_cloud_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-install(
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+  install(
   DIRECTORY ${_ouster_ros_INCLUDE_DIRS}
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-install(FILES ../LICENSE ../LICENSE-bin ouster.launch viz.rviz
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+  install(FILES ../LICENSE launch/ouster.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
